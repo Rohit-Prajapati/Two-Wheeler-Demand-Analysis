@@ -9,8 +9,8 @@ from dash import dcc, html, Input, Output, dash_table
 import dash_bootstrap_components as dbc
 
 # ─── DATA LOADING & FEATURE ENGINEERING ────────────────────────────────────
-reg = pd.read_excel('C:/Two_Wheeler_Demand_Analysis/Two-Wheeler_Demand_Assessment_Data.xlsx', sheet_name='2W_Registrations')
-macro = pd.read_excel('C:/Two_Wheeler_Demand_Analysis/Two-Wheeler_Demand_Assessment_Data.xlsx', sheet_name='Macro_Indicators')
+reg = pd.read_excel('C:/Two-Wheeler-Demand-Analysis/Two-Wheeler_Demand_Assessment_Data.xlsx', sheet_name='2W_Registrations')
+macro = pd.read_excel('C:/Two-Wheeler-Demand-Analysis/Two-Wheeler_Demand_Assessment_Data.xlsx', sheet_name='Macro_Indicators')
 
 df = pd.merge(reg, macro, on=['State', 'Quarter'])
 df = df.sort_values(['State', 'Quarter']).reset_index(drop=True)
