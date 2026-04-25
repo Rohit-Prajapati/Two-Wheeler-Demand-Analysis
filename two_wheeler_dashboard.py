@@ -104,7 +104,7 @@ best_lead = corr_all[corr_all['Lag'] > 0].assign(AbsCorr=lambda x: x['Correlatio
 
 # ─── App Layout ─────────────────────────────────────────────────────────────
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP],
-                title='Two-Wheeler Demand Intelligence')
+                title='Two-Wheeler Demand Analysis')
 
 CARD = {
     'background': COLORS['surface'],
