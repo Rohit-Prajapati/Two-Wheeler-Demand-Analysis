@@ -8,9 +8,9 @@ import dash
 from dash import dcc, html, Input, Output, dash_table
 import dash_bootstrap_components as dbc
 
-# ─── DATA LOADING & FEATURE ENGINEERING ────────────────────────────────────
-reg = pd.read_excel('C:/Two-Wheeler-Demand-Analysis/Two-Wheeler_Demand_Assessment_Data.xlsx', sheet_name='2W_Registrations')
-macro = pd.read_excel('C:/Two-Wheeler-Demand-Analysis/Two-Wheeler_Demand_Assessment_Data.xlsx', sheet_name='Macro_Indicators')
+# ─── Data loading & Merging ────────────────────────────────────
+reg = pd.read_excel('C:/Two_Wheeler_Demand_Analysis/Two-Wheeler_Demand_Assessment_Data.xlsx', sheet_name='2W_Registrations')
+macro = pd.read_excel('C:/Two_Wheeler_Demand_Analysis/Two-Wheeler_Demand_Assessment_Data.xlsx', sheet_name='Macro_Indicators')
 
 df = pd.merge(reg, macro, on=['State', 'Quarter'])
 df = df.sort_values(['State', 'Quarter']).reset_index(drop=True)
@@ -46,7 +46,7 @@ for state, sdf in df.groupby('State'):
 
 df = pd.concat(state_dfs).reset_index(drop=True)
 
-# ─── CORRELATION ANALYSIS ───────────────────────────────────────────────────
+# ─── Correlation Analysis───────────────────────────────────────────────────
 def compute_correlations(data, lag=0):
     rows = []
     for state, sdf in data.groupby('State'):
@@ -64,7 +64,7 @@ corr1 = compute_correlations(df, 1)
 corr2 = compute_correlations(df, 2)
 corr_all = pd.concat([corr0, corr1, corr2])
 
-# ─── COLOUR PALETTE ─────────────────────────────────────────────────────────
+# ─── Color Palette ─────────────────────────────────────────────────────────
 COLORS = {
     'bg': '#0e1117', 'surface': '#1a1f2e', 'surface2': '#232940',
     'accent': '#4f8ef7', 'accent2': '#7c5cbf', 'green': '#2ecc71',
@@ -84,7 +84,7 @@ LAYOUT_BASE = dict(
     legend=dict(bgcolor='rgba(0,0,0,0)', bordercolor=COLORS['border'], borderwidth=1),
 )
 
-# ─── INSIGHT SUMMARY ────────────────────────────────────────────────────────
+# ─── Insight Summary────────────────────────────────────────────────────────
 latest_q = QUARTERS[-1]
 prev_q = QUARTERS[-2]
 prev_year_q = QUARTERS[-5]
@@ -102,7 +102,7 @@ total_qoq = (total_regs_latest / total_regs_prev - 1) * 100
 # Best leading indicator overall
 best_lead = corr_all[corr_all['Lag'] > 0].assign(AbsCorr=lambda x: x['Correlation'].abs()).nlargest(1, 'AbsCorr').iloc[0]
 
-# ─── APP LAYOUT ─────────────────────────────────────────────────────────────
+# ─── App Layout ─────────────────────────────────────────────────────────────
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP],
                 title='Two-Wheeler Demand Intelligence')
 
@@ -129,7 +129,7 @@ def section_header(title, subtitle=''):
 
 app.layout = html.Div(style={'backgroundColor': COLORS['bg'], 'minHeight': '100vh', 'fontFamily': FONT, 'color': COLORS['text']}, children=[
 
-    # ── HEADER ──
+    # ── Header ──
     html.Div([
         html.Div([
             html.H1('Two-Wheeler Demand Intelligence', style={'margin': 0, 'fontWeight': '700', 'fontSize': '22px', 'color': COLORS['text']}),
@@ -142,7 +142,7 @@ app.layout = html.Div(style={'backgroundColor': COLORS['bg'], 'minHeight': '100v
 
     html.Div(style={'padding': '0 32px 32px 32px'}, children=[
 
-        # ── NAV TABS ──
+        # ── Navigation Tabs──
         dcc.Tabs(id='tabs', value='overview', style={'marginBottom': '20px'}, children=[
             dcc.Tab(label='📊  Overview', value='overview', style={'backgroundColor': COLORS['bg'], 'color': COLORS['subtext'], 'border': 'none', 'padding': '10px 20px'},
                     selected_style={'backgroundColor': COLORS['surface2'], 'color': COLORS['text'], 'borderTop': f'2px solid {COLORS["accent"]}', 'fontWeight': '600'}),
@@ -160,7 +160,7 @@ app.layout = html.Div(style={'backgroundColor': COLORS['bg'], 'minHeight': '100v
     ]),
 ])
 
-# ─── TAB CONTENT CALLBACKS ──────────────────────────────────────────────────
+# ─── Tab Content Callbacks ──────────────────────────────────────────────────
 @app.callback(Output('tab-content', 'children'), Input('tabs', 'value'))
 def render_tab(tab):
     if tab == 'overview':   return render_overview()
@@ -169,7 +169,7 @@ def render_tab(tab):
     if tab == 'watchlist':  return render_watchlist()
     if tab == 'insights':   return render_insights()
 
-# ── OVERVIEW TAB ────────────────────────────────────────────────────────────
+# ── Overview Tab ────────────────────────────────────────────────────────────
 def render_overview():
     total_all = df.groupby('Quarter')['2W_Registrations'].sum().reset_index()
     total_all = total_all.sort_values('Quarter')
@@ -237,14 +237,14 @@ def render_overview():
         ]),
     ])
 
-# ── STATE DEEP DIVE TAB ─────────────────────────────────────────────────────
+# ── State Deep Dive Tab ─────────────────────────────────────────────────────
 def render_state():
     controls = dbc.Row([
         dbc.Col([
             html.Label('Select States', style={'color': COLORS['subtext'], 'fontSize': '12px'}),
             dcc.Dropdown(id='state-selector', options=[{'label': s, 'value': s} for s in STATES],
                          value=STATES, multi=True,
-                         style={'backgroundColor': COLORS['surface2'], 'color': COLORS['text']},
+                         style={'backgroundColor': COLORS['surface2'], 'color': COLORS['surface']},
                          className='dark-dropdown'),
         ], md=8),
         dbc.Col([
@@ -254,7 +254,7 @@ def render_state():
                 {'label': ' QoQ Growth %', 'value': 'QoQ_Growth'},
                 {'label': ' YoY Growth %', 'value': 'YoY_Growth'},
             ], value='2W_Registrations', inline=True, style={'color': COLORS['text'], 'fontSize': '13px'},
-               labelStyle={'marginRight': '16px', 'cursor': 'pointer'}),
+               labelStyle={'marginRight': '16px', 'cursor': 'pointer','color': COLORS['text'] }),
         ], md=4),
     ], style={**CARD, 'padding': '16px 20px'})
 
@@ -322,21 +322,21 @@ def update_state_charts(states, metric):
         html.Div(dcc.Graph(figure=fig3, config={'displayModeBar': False}), style=CARD),
     )
 
-# ── MACRO SIGNALS TAB ───────────────────────────────────────────────────────
+# ── Macro Signals Tab ───────────────────────────────────────────────────────
 def render_macro():
     controls = dbc.Row([
         dbc.Col([
             html.Label('State', style={'color': COLORS['subtext'], 'fontSize': '12px'}),
             dcc.Dropdown(id='macro-state', options=[{'label': s, 'value': s} for s in STATES],
                          value=STATES[0], clearable=False,
-                         style={'backgroundColor': COLORS['surface2'], 'color': COLORS['text']}),
+                         style={'backgroundColor': COLORS['surface2'], 'color': COLORS['surface']}),
         ], md=4),
         dbc.Col([
             html.Label('Indicator', style={'color': COLORS['subtext'], 'fontSize': '12px'}),
             dcc.Dropdown(id='macro-indicator',
                          options=[{'label': MACRO_LABELS[c], 'value': c} for c in MACRO_COLS],
                          value=MACRO_COLS[0], clearable=False,
-                         style={'backgroundColor': COLORS['surface2'], 'color': COLORS['text']}),
+                         style={'backgroundColor': COLORS['surface2'], 'color': COLORS['surface']}),
         ], md=4),
         dbc.Col([
             html.Label('Lag (quarters)', style={'color': COLORS['subtext'], 'fontSize': '12px'}),
@@ -345,7 +345,7 @@ def render_macro():
                 {'label': ' Lag 1', 'value': 1},
                 {'label': ' Lag 2', 'value': 2},
             ], value=0, inline=True, style={'color': COLORS['text'], 'fontSize': '13px'},
-               labelStyle={'marginRight': '16px', 'cursor': 'pointer', 'paddingTop': '6px'}),
+               labelStyle={'marginRight': '16px', 'cursor': 'pointer', 'paddingTop': '6px', 'color': COLORS['text']}),
         ], md=4),
     ], style={**CARD, 'padding': '16px 20px'})
 
@@ -428,7 +428,7 @@ def update_macro(state, indicator, lag):
         html.Div(dcc.Graph(figure=fig3, config={'displayModeBar': False}), style=CARD),
     )
 
-# ── WATCHLIST TAB ───────────────────────────────────────────────────────────
+# ── Watch List Tab ───────────────────────────────────────────────────────────
 def render_watchlist():
     # Classify states by momentum in last 2 quarters
     watch = []
@@ -509,7 +509,7 @@ def render_watchlist():
         ]),
     ])
 
-# ── INSIGHT SUMMARY TAB ─────────────────────────────────────────────────────
+# ──  Insight Summary Tab ─────────────────────────────────────────────────────
 def render_insights():
     # Compute per-state latest metrics for insights
     state_summary = []
